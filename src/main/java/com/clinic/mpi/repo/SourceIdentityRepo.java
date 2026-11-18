@@ -11,4 +11,8 @@ public interface SourceIdentityRepo extends JpaRepository<SourceIdentity, UUID> 
     Optional<SourceIdentity> findBySourceSystemAndSourcePatientId(String sourceSystem, String sourcePatientId);
 
     boolean existsBySourceSystemAndSourcePatientId(String sourceSystem, String sourcePatientId);
+
+    java.util.List<SourceIdentity> findByPhone(String phone);
+
+    java.util.List<SourceIdentity> findByFullName(String fullName);
 }

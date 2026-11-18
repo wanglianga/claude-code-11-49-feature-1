@@ -3,6 +3,7 @@ package com.clinic.mpi.web;
 import com.clinic.mpi.service.ApiException;
 import com.clinic.mpi.service.BadRequestException;
 import com.clinic.mpi.service.ConflictException;
+import com.clinic.mpi.service.ForbiddenException;
 import com.clinic.mpi.service.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,11 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String, Object>> forbidden(ForbiddenException e) {
+        return build(HttpStatus.FORBIDDEN, e);
+    }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Map<String, Object>> notFound(NotFoundException e) {

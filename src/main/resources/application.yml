@@ -27,6 +27,10 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+# 匹配质量校准：高影响来源院区（新院区接入区），分层抽样优先覆盖
+audit:
+  high-impact-campuses: ${AUDIT_HIGH_IMPACT_CAMPUSES:B,C}
+
 logging:
   level:
     root: info

@@ -44,12 +44,14 @@ public class ResolutionService {
     private final MpiLinkRepo linkRepo;
     private final GraphService graphService;
     private final ImpactService impactService;
+    private final CandidateSnapshotService candidateSnapshotService;
     private final ObjectMapper objectMapper;
 
     public ResolutionService(ResolutionRepo resolutionRepo, CandidatePairRepo candidateRepo,
                              SourceIdentityRepo identityRepo, MpiMasterRepo masterRepo,
                              MpiLinkRepo linkRepo, GraphService graphService,
-                             ImpactService impactService, ObjectMapper objectMapper) {
+                             ImpactService impactService, CandidateSnapshotService candidateSnapshotService,
+                             ObjectMapper objectMapper) {
         this.resolutionRepo = resolutionRepo;
         this.candidateRepo = candidateRepo;
         this.identityRepo = identityRepo;
@@ -57,6 +59,7 @@ public class ResolutionService {
         this.linkRepo = linkRepo;
         this.graphService = graphService;
         this.impactService = impactService;
+        this.candidateSnapshotService = candidateSnapshotService;
         this.objectMapper = objectMapper;
     }
 
@@ -149,6 +152,8 @@ public class ResolutionService {
             pair.decidedBy = operatorId;
             pair.decisionReason = reason;
             candidateRepo.save(pair);
+            // 校准侧：候选被合并即撤销，已抽样样本保留抽样框转复核
+            candidateSnapshotService.onCandidateWithdrawn(pair.id, "候选经人工合并决议撤销: " + reason);
         }
 
         state.version = newVersion;
@@ -249,7 +254,10 @@ public class ResolutionService {
         pair.decidedAt = Instant.now();
         pair.decidedBy = operatorId;
         pair.decisionReason = reason;
-        return candidateRepo.save(pair);
+        CandidatePair saved = candidateRepo.save(pair);
+        // 校准侧：候选被人工拒绝即撤销，已抽样样本保留抽样框转复核
+        candidateSnapshotService.onCandidateWithdrawn(pair.id, "候选经人工拒绝撤销: " + reason);
+        return saved;
     }
 
     private GraphState lockAndCheckVersion(long expectedGraphVersion) {

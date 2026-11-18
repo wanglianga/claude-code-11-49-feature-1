@@ -87,4 +87,32 @@ public final class Dtos {
             UUID masterId,
             long graphVersion) {
     }
+
+    // ---- 匹配质量校准与抽样审计 ----
+
+    public record CreateBatchRequest(
+            @NotBlank String strategy,
+            int sampleSize,
+            Long seed,
+            String note) {
+    }
+
+    public record SupplementRequest(
+            @NotNull UUID candidateSnapshotId) {
+    }
+
+    public record AnnotateRequest(
+            @NotBlank String label,
+            String note) {
+    }
+
+    public record AdjudicateRequest(
+            @NotBlank String outcome,
+            String note) {
+    }
+
+    public record PublishThresholdRequest(
+            @NotNull Double matchThreshold,
+            String rationale) {
+    }
 }

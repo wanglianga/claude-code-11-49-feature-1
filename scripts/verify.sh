@@ -75,7 +75,7 @@ M_L1_ORIG=$(resolve_master LAB_A L-A-001)
 echo
 echo "【场景0】初始播种数据"
 N_CAND=$(get "/api/candidates?status=PENDING" | jq 'length')
-check "待处理候选对 5 个（含家庭共用号码 0.4 分对）" "$N_CAND" "5"
+check "待处理候选对 7 个（含家庭共用号码 0.4 分对与校准场景 2 对）" "$N_CAND" "7"
 check "张三两院候选对评分 1.0" \
   "$(get "/api/candidates?status=PENDING" | jq -r --arg a "$A1" --arg b "$B1" '[.[] | select((.identityAId==$a and .identityBId==$b) or (.identityAId==$b and .identityBId==$a))][0].score')" "1"
 

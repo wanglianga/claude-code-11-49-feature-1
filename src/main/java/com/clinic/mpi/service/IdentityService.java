@@ -32,10 +32,12 @@ public class IdentityService {
     private final MpiLinkRepo linkRepo;
     private final GraphService graphService;
     private final MatchService matchService;
+    private final CandidateSnapshotService candidateSnapshotService;
 
     public IdentityService(SourceIdentityRepo identityRepo, IdentityCorrectionRepo correctionRepo,
                            CandidatePairRepo candidateRepo, MpiMasterRepo masterRepo,
-                           MpiLinkRepo linkRepo, GraphService graphService, MatchService matchService) {
+                           MpiLinkRepo linkRepo, GraphService graphService, MatchService matchService,
+                           CandidateSnapshotService candidateSnapshotService) {
         this.identityRepo = identityRepo;
         this.correctionRepo = correctionRepo;
         this.candidateRepo = candidateRepo;
@@ -43,6 +45,7 @@ public class IdentityService {
         this.linkRepo = linkRepo;
         this.graphService = graphService;
         this.matchService = matchService;
+        this.candidateSnapshotService = candidateSnapshotService;
     }
 
     /** 接入来源身份：创建初始主体 + 当前版本生效的链接，并触发候选匹配。 */
@@ -122,13 +125,18 @@ public class IdentityService {
         identityRepo.save(identity);
         correctionRepo.save(correction);
 
-        // 旧证据生成的待处理候选对作废，按新证据重跑匹配
+        // 旧证据生成的待处理候选对作废，按新证据重跑匹配。
+        // 校准侧：先按"来源证据更正"保留抽样框并转复核状态（抽样时证据仍可裁决），
+        // 再作废候选；已流转的快照不重复处理，任何快照与样本都不会被删除。
+        candidateSnapshotService.onIdentityCorrected(identity.id, field);
         for (CandidatePair pair : candidateRepo.findPendingInvolving(identity.id)) {
             pair.status = CandidatePair.Status.SUPERSEDED;
             pair.decidedAt = Instant.now();
             pair.decidedBy = operatorId;
             pair.decisionReason = "来源身份字段更正，候选对基于旧证据生成，自动作废";
             candidateRepo.save(pair);
+            candidateSnapshotService.onCandidateWithdrawn(pair.id,
+                    "来源身份 " + field + " 更正，旧证据候选自动作废");
         }
         matchService.generateCandidatesFor(identity);
         return correction;

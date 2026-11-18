@@ -81,6 +81,20 @@ public class DataSeeder implements ApplicationRunner {
         identityService.ingest("SETTLE_A", "S-A-001", "赵六", "13600000004",
                 "110101197703031111", "M", LocalDate.of(1977, 3, 3));
 
+        // 场景5（校准）：新院区 REG_C 同名高发 —— 三个"张伟"，其中 C 区两人同号（同名+同号，0.60 分候选）
+        identityService.ingest("REG_A", "P-A-005", "张伟", "13500000005",
+                "110101199203030001", "M", LocalDate.of(1992, 3, 3));
+        identityService.ingest("REG_C", "P-C-001", "张伟", "13500000006",
+                "110101199203030002", "M", LocalDate.of(1992, 3, 3));
+        identityService.ingest("REG_C", "P-C-002", "张伟", "13500000006",
+                "110101199203030003", "M", LocalDate.of(1992, 3, 3));
+
+        // 场景6（校准）：低分真实同人 —— 王芳曾用名"王芳芳"，无证件号，姓名相似+手机/生日/性别一致（0.50 分候选）
+        identityService.ingest("REG_A", "P-A-006", "王芳", "13611110006",
+                null, "F", LocalDate.of(1980, 6, 6));
+        identityService.ingest("REG_C", "P-C-006", "王芳芳", "13611110006",
+                null, "F", LocalDate.of(1980, 6, 6));
+
         // ---- 初始业务快照（固定图谱版本 v0，全部身份各自为单例主体） ----
         Snapshot apptSnap = snapshotService.publish(
                 Snapshot.BusinessType.APPOINTMENT, "SN-INIT-APPT 初始预约快照", "seed");
@@ -109,6 +123,6 @@ public class DataSeeder implements ApplicationRunner {
         bizService.createLabReport(labSnap.id, "REG_A", "P-A-002", "血常规");
         bizService.createLabReport(labSnap.id, "LAB_A", "L-A-001", "尿常规");
 
-        log.info("样例数据播种完成：9 个来源身份、3 份初始快照、6 条下游业务记录");
+        log.info("样例数据播种完成：13 个来源身份、3 份初始快照、6 条下游业务记录、7 个待处理候选对（含校准场景）");
     }
 }
